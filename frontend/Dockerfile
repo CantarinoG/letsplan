@@ -1,3 +1,8 @@
 FROM node:20
 WORKDIR /app
-CMD ["node", "-e", "require('http').createServer((_,res)=>res.end('Frontend running')).listen(4173)"]
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 4173
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "4173"]
