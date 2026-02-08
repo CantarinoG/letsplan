@@ -1,31 +1,10 @@
-<div class="container">
-    <h1>Hello World!</h1>
-    <p>Welcome to your SvelteKit project.</p>
+<div
+    class="flex flex-col items-center justify-center h-[80vh] bg-sky-50 rounded-3xl m-8 shadow-xl text-center font-sans border border-sky-100"
+>
+    <h1 class="text-sky-700 text-6xl font-black mb-4 tracking-tight">
+        Hello World!
+    </h1>
+    <p class="text-sky-900 text-xl font-medium opacity-80">
+        Welcome to your SvelteKit project.
+    </p>
 </div>
-
-<style>
-    .container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 80vh;
-        font-family: sans-serif;
-        text-align: center;
-        background-color: #f0f9ff;
-        border-radius: 1rem;
-        margin: 2rem;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    }
-
-    h1 {
-        color: #0369a1;
-        font-size: 3rem;
-        margin-bottom: 0.5rem;
-    }
-
-    p {
-        color: #0c4a6e;
-        font-size: 1.25rem;
-    }
-</style>
