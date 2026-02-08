@@ -41,5 +41,25 @@ namespace Backend.Controllers
             var events = await _events.Find(filter).ToListAsync();
             return Ok(events);
         }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CalendarEvent>> GetById(string id)
+        {
+            var eventFound = await _events.Find(e => e.Id == id).FirstOrDefaultAsync();
+
+            if (eventFound == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(eventFound);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<CalendarEvent>> Post([FromBody] CalendarEvent calendarEvent)
+        {
+            await _events.InsertOneAsync(calendarEvent);
+            return CreatedAtAction(nameof(GetById), new { id = calendarEvent.Id }, calendarEvent);
+        }
     }
 }
