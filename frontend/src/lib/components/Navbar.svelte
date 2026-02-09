@@ -1,9 +1,14 @@
+<script>
+    export let toggleSidebar = () => {};
+</script>
+
 <nav class="navbar bg-base-100 border-b border-base-200 px-4 py-2">
     <!-- Navbar Start: Toggle & Logo -->
     <div class="navbar-start gap-2 sm:gap-4">
         <button
             class="btn btn-ghost btn-circle btn-sm"
             aria-label="Toggle Sidebar"
+            onclick={toggleSidebar}
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"

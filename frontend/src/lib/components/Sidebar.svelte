@@ -3,14 +3,13 @@
 </script>
 
 <aside
-    class="w-64 bg-base-100 border-r border-base-200 flex flex-col h-full overflow-hidden hidden lg:flex"
+    class="w-64 bg-base-100 border-r border-base-200 flex flex-col h-full overflow-hidden"
 >
     <!-- Create Event Button -->
     <div class="p-4 pt-6">
         <button
             class="btn bg-blue-600 hover:bg-blue-700 text-white font-bold w-full rounded-2xl shadow-lg border-none flex items-center justify-center gap-2 py-4 h-auto transition-transform hover:scale-[1.02] active:scale-[0.98]"
         >
-
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -38,7 +37,6 @@
     >
         <MiniCalendar />
     </div>
-
 </aside>
 
 <style>
