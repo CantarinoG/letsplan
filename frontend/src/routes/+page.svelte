@@ -16,6 +16,7 @@
         createCalendarEvent,
         getCalendarEvents,
         deleteCalendarEvent,
+        updateCalendarEvent,
     } from "$lib/api";
 
     const DEFAULT_COLOR_ID: string = "blue";
@@ -107,14 +108,21 @@
         console.log("Saving event to backend:", detail);
 
         try {
-            const newEvent = await createCalendarEvent({
+            const eventPayload = {
                 title: detail.title,
                 description: detail.description,
                 startAt: new Date(detail.startDate).toISOString(),
                 endAt: new Date(detail.endDate).toISOString(),
                 color: detail.color,
-            });
-            console.log("Event saved successfully:", newEvent);
+            };
+
+            if (editEventId) {
+                await updateCalendarEvent(editEventId, eventPayload);
+                console.log("Event updated successfully");
+            } else {
+                const newEvent = await createCalendarEvent(eventPayload);
+                console.log("Event created successfully:", newEvent);
+            }
             await loadEvents(); // Refresh list
         } catch (error) {
             console.error("Failed to save event:", error);

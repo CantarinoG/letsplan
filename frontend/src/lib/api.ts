@@ -54,3 +54,18 @@ export async function deleteCalendarEvent(id: string): Promise<void> {
         throw new Error(`Failed to delete event: ${errorText || response.statusText}`);
     }
 }
+
+export async function updateCalendarEvent(id: string, event: Partial<CalendarEvent>): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/Events/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update event: ${errorText || response.statusText}`);
+    }
+}
