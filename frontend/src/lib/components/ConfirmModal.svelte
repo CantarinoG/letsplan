@@ -33,7 +33,7 @@
 
 {#if isOpen}
     <div
-        class="modal modal-open z-[60]"
+        class="modal modal-open bg-black/40 backdrop-blur-sm z-[60]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"

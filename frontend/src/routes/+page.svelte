@@ -291,7 +291,7 @@
         {#if isSidebarOpen}
             <!-- Mobile Backdrop -->
             <div
-                class="absolute inset-0 bg-black/50 z-40 lg:hidden"
+                class="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
                 onclick={toggleSidebar}
                 aria-hidden="true"
                 transition:fly={{ duration: 200 }}
