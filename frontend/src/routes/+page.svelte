@@ -12,6 +12,7 @@
         format,
         isSameMonth,
     } from "date-fns";
+    import { createCalendarEvent } from "$lib/api";
 
     const DEFAULT_COLOR_ID: string = "blue"; // Define DEFAULT_COLOR_ID
 
@@ -96,8 +97,24 @@
         isEventModalOpen = false;
     }
 
-    function saveEvent(e: CustomEvent): void {
-        console.log("Event saved:", e.detail);
+    async function saveEvent(e: CustomEvent): Promise<void> {
+        const detail = e.detail;
+        console.log("Saving event to backend:", detail);
+
+        try {
+            const newEvent = await createCalendarEvent({
+                title: detail.title,
+                description: detail.description,
+                startAt: new Date(detail.startDate).toISOString(),
+                endAt: new Date(detail.endDate).toISOString(),
+                color: detail.color,
+            });
+            console.log("Event saved successfully:", newEvent);
+        } catch (error) {
+            console.error("Failed to save event:", error);
+            alert("Error saving event. Please try again.");
+        }
+
         isEventModalOpen = false;
     }
 
