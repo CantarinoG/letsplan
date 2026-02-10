@@ -1,25 +1,44 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
 
-    function toISO(date: Date): string {
-        return date.toISOString().split("T")[0];
-    }
+    export let value = new Date().toISOString().split("T")[0];
+    const dispatch = createEventDispatcher();
 
     // We can interact with the calendar element if needed
     let calendar: HTMLElement;
-    let today: string = toISO(new Date());
 
-    onMount(async () => {
-        await import("cally");
+    function handleChange(event: any) {
+        console.log("MiniCalendar manual change event:", event);
+        console.log("New value:", event.target.value);
+        dispatch("datechange", event.target.value);
+    }
+
+    onMount(() => {
+        let cleanup = () => {};
+        (async () => {
+            await import("cally");
+            if (calendar) {
+                calendar.addEventListener("change", handleChange);
+                cleanup = () => {
+                    if (calendar) {
+                        calendar.removeEventListener("change", handleChange);
+                    }
+                };
+            }
+        })();
+        return () => cleanup();
     });
 </script>
 
 <div class="calendar-wrapper">
+    <!-- Cally Calendar Component -->
+    <!-- 'cally' class activates DaisyUI styling -->
+    <!-- We override the primary color locally to match our bg-blue-600 -->
     <calendar-date
-        class="cally bg-base-100 border-none shadow-none"
+        class="cally w-full bg-base-100 border-none shadow-none"
+        {value}
         first-day-of-week="0"
         show-outside-days="true"
-        value={today}
         bind:this={calendar}
     >
         <!-- Custom Icons matching our design -->
@@ -79,6 +98,7 @@
         */
         --p: 53.6% 0.201 267.4; /* OKLCH value for blue-600 approx */
         --r: 0.5rem; /* Rounded corners */
+        font-size: 0.8rem;
     }
 
     /* 

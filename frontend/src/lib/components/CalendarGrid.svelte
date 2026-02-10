@@ -1,5 +1,7 @@
 <script>
     import CalendarHeader from "$lib/components/CalendarHeader.svelte";
+
+    export let weekStart = new Date(); // Default if not provided
 </script>
 
 <div class="flex-1 flex flex-col overflow-hidden bg-base-100">
@@ -12,7 +14,7 @@
 
         <!-- The Calendar Header -->
         <div class="flex-1">
-            <CalendarHeader />
+            <CalendarHeader {weekStart} />
         </div>
 
         <!-- Scrollbar spacer to prevent misalignment -->

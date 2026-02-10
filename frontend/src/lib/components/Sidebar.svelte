@@ -1,9 +1,11 @@
 <script lang="ts">
     import MiniCalendar from "./MiniCalendar.svelte";
+
+    export let date = "";
 </script>
 
 <aside
-    class="w-64 bg-base-100 border-r border-base-200 flex flex-col h-full overflow-hidden"
+    class="w-72 bg-base-100 border-r border-base-200 flex flex-col h-full overflow-hidden"
 >
     <!-- Create Event Button -->
     <div class="p-4 pt-6">
@@ -33,9 +35,9 @@
 
     <!-- Mini Calendar -->
     <div
-        class="flex-1 px-4 py-4 overflow-y-auto overflow-x-hidden scrollbar-hide"
+        class="flex-1 px-2 py-4 overflow-y-auto overflow-x-hidden scrollbar-hide"
     >
-        <MiniCalendar />
+        <MiniCalendar value={date} on:datechange />
     </div>
 </aside>
 

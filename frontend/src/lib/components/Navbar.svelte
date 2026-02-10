@@ -1,5 +1,9 @@
 <script>
     export let toggleSidebar = () => {};
+    export let dateRangeString = "";
+    export let onNext = () => {};
+    export let onPrev = () => {};
+    export let onToday = () => {};
 </script>
 
 <nav class="navbar bg-base-100 border-b border-base-200 px-4 py-2">
@@ -54,6 +58,7 @@
 
             <button
                 class="btn btn-sm btn-outline border-base-300 bg-base-100 hover:bg-base-200 px-5 font-bold text-base-content/70 hidden md:inline-flex"
+                onclick={onToday}
             >
                 Today
             </button>
@@ -66,6 +71,7 @@
             <button
                 class="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-base-content"
                 aria-label="Previous Week"
+                onclick={onPrev}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -83,11 +89,12 @@
             </button>
             <span
                 class="text-sm sm:text-base font-bold text-base-content whitespace-nowrap"
-                >Oct 23 – 29, 2023</span
+                >{dateRangeString}</span
             >
             <button
                 class="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-base-content"
                 aria-label="Next Week"
+                onclick={onNext}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
