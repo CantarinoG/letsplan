@@ -12,7 +12,11 @@
         format,
         isSameMonth,
     } from "date-fns";
-    import { createCalendarEvent, getCalendarEvents } from "$lib/api";
+    import {
+        createCalendarEvent,
+        getCalendarEvents,
+        deleteCalendarEvent,
+    } from "$lib/api";
 
     const DEFAULT_COLOR_ID: string = "blue";
 
@@ -23,6 +27,7 @@
     let events: any[] = [];
 
     // Edit fields
+    let editEventId: string | undefined = undefined;
     let editTitle: string = "";
     let editDescription: string = "";
     let editColorId: string = DEFAULT_COLOR_ID;
@@ -43,6 +48,7 @@
 
     function openEventModal(): void {
         selectedDateStr = format(currentDate, "yyyy-MM-dd");
+        editEventId = undefined;
         editTitle = "";
         editDescription = "";
         editColorId = DEFAULT_COLOR_ID;
@@ -53,6 +59,7 @@
 
     function handleCellClick(event: CustomEvent<{ date: Date }>): void {
         selectedDateStr = format(event.detail.date, "yyyy-MM-dd'T'HH:mm");
+        editEventId = undefined;
         editTitle = "";
         editDescription = "";
         editColorId = DEFAULT_COLOR_ID;
@@ -65,6 +72,7 @@
         const detail = event.detail.event;
         selectedDateStr = detail.startAt;
 
+        editEventId = detail.id;
         editTitle = detail.title;
         editDescription = detail.description || "";
         editColorId = detail.color;
@@ -116,8 +124,19 @@
         isEventModalOpen = false;
     }
 
-    function handleDelete(): void {
-        console.log("Event deleted");
+    async function handleDelete(): Promise<void> {
+        if (!editEventId) return;
+
+        if (confirm("Are you sure you want to delete this event?")) {
+            try {
+                await deleteCalendarEvent(editEventId);
+                console.log("Event deleted successfully");
+                await loadEvents(); // Refresh list
+            } catch (error) {
+                console.error("Failed to delete event:", error);
+                alert("Error deleting event. Please try again.");
+            }
+        }
         isEventModalOpen = false;
     }
 

@@ -91,10 +91,8 @@
     }
 
     function handleDelete(): void {
-        if (confirm("Are you sure you want to delete this event?")) {
-            dispatch("delete");
-            close();
-        }
+        dispatch("delete");
+        close();
     }
 
     function handleBackdropClick(e: MouseEvent): void {

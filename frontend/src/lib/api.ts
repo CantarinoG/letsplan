@@ -43,3 +43,14 @@ export async function getCalendarEvents(startDate?: string, endDate?: string): P
 
     return response.json();
 }
+
+export async function deleteCalendarEvent(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/Events/${id}`, {
+        method: 'DELETE',
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete event: ${errorText || response.statusText}`);
+    }
+}

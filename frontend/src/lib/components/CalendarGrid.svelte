@@ -240,6 +240,7 @@
 
                             {#each layoutedEvents.filter((e) => e.dayIndex === i) as event}
                                 <EventCard
+                                    id={event.id}
                                     title={event.title}
                                     startTime={event.startTime}
                                     endTime={event.endTime}

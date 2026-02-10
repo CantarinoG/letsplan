@@ -16,8 +16,11 @@
     export let startAt: string = "";
     export let endAt: string = "";
 
+    export let id: string | undefined = undefined;
+
     const dispatch = createEventDispatcher<{
         click: {
+            id?: string;
             title: string;
             startTime: string;
             endTime: string;
@@ -32,6 +35,7 @@
     function handleCardClick(e: MouseEvent): void {
         e.stopPropagation();
         dispatch("click", {
+            id,
             title,
             startTime,
             endTime,
