@@ -12,20 +12,21 @@
         addMinutes,
         addDays,
     } from "date-fns";
+    import { type CalendarEvent } from "$lib/api";
 
     const HOUR_HEIGHT = 80;
 
     export let weekStart: Date = new Date();
-    export let events: any[] = [];
+    export let events: CalendarEvent[] = [];
 
     const dispatch = createEventDispatcher<{
         cellclick: { date: Date };
-        eventclick: { event: any };
+        eventclick: { event: CalendarEvent };
         eventmove: {
             id: string;
             startAt: string;
             endAt: string;
-            eventData: any;
+            eventData: CalendarEvent;
         };
         navprev: void;
         navnext: void;
@@ -72,7 +73,8 @@
         if (!data) return;
 
         try {
-            const eventData = JSON.parse(data);
+            const eventData: CalendarEvent & { durationMinutes: number } =
+                JSON.parse(data);
             const { durationMinutes } = eventData;
 
             // Get coordinates relative to the column
@@ -91,12 +93,14 @@
             const newStart = setMinutes(setHours(targetDay, hours), minutes);
             const newEnd = addMinutes(newStart, durationMinutes);
 
-            dispatch("eventmove", {
-                id: eventData.id,
-                startAt: newStart.toISOString(),
-                endAt: newEnd.toISOString(),
-                eventData,
-            });
+            if (eventData.id) {
+                dispatch("eventmove", {
+                    id: eventData.id,
+                    startAt: newStart.toISOString(),
+                    endAt: newEnd.toISOString(),
+                    eventData,
+                });
+            }
             clearNavTimeout();
         } catch (err) {
             console.error("Failed to process drop:", err);
@@ -167,7 +171,9 @@
         return event1.top < end2 && end1 > event2.top;
     }
 
-    function calculateEventLayout(backendEvents: any[]): LayoutEvent[] {
+    function calculateEventLayout(
+        backendEvents: CalendarEvent[],
+    ): LayoutEvent[] {
         const processedEvents: LayoutEvent[] = backendEvents.map((event) => {
             const start = new Date(event.startAt);
             const end = new Date(event.endAt);

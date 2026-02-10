@@ -17,6 +17,7 @@
         getCalendarEvents,
         deleteCalendarEvent,
         updateCalendarEvent,
+        type CalendarEvent,
     } from "$lib/api";
 
     const DEFAULT_COLOR_ID: string = "blue";
@@ -25,7 +26,7 @@
     let isEventModalOpen: boolean = false;
     let currentDate: Date = new Date();
     let selectedDateStr: string = format(new Date(), "yyyy-MM-dd");
-    let events: any[] = [];
+    let events: CalendarEvent[] = [];
 
     // Edit fields
     let editEventId: string | undefined = undefined;
@@ -69,7 +70,9 @@
         isEventModalOpen = true;
     }
 
-    function handleEventClick(event: CustomEvent<{ event: any }>): void {
+    function handleEventClick(
+        event: CustomEvent<{ event: CalendarEvent }>,
+    ): void {
         const detail = event.detail.event;
         selectedDateStr = detail.startAt;
 
@@ -103,17 +106,27 @@
         isEventModalOpen = false;
     }
 
-    async function saveEvent(e: CustomEvent): Promise<void> {
+    async function saveEvent(
+        e: CustomEvent<{
+            title: string;
+            isAllDay: boolean;
+            startDate: string;
+            endDate: string;
+            description: string;
+            color: string;
+        }>,
+    ): Promise<void> {
         const detail = e.detail;
         console.log("Saving event to backend:", detail);
 
         try {
-            const eventPayload = {
+            const eventPayload: Omit<CalendarEvent, "id"> = {
                 title: detail.title,
                 description: detail.description,
                 startAt: new Date(detail.startDate).toISOString(),
                 endAt: new Date(detail.endDate).toISOString(),
                 color: detail.color,
+                isAllDay: detail.isAllDay,
             };
 
             if (editEventId) {
@@ -153,7 +166,7 @@
             id: string;
             startAt: string;
             endAt: string;
-            eventData: any;
+            eventData: CalendarEvent;
         }>,
     ): Promise<void> {
         const { id, startAt, endAt, eventData } = event.detail;
