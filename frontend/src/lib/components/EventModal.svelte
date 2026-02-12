@@ -1,18 +1,23 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { format } from "date-fns";
-    import {
-        EVENT_COLORS,
-        DEFAULT_COLOR_ID,
-        type EventColor,
-    } from "$lib/constants/colors";
+    import { EVENT_COLORS, type EventColor } from "$lib/constants/colors";
+    import { EventForm } from "$lib/eventForm.svelte";
 
-    export let isOpen: boolean = false;
-    export let date: string = "";
-    export let initialTitle: string = "";
-    export let initialDescription: string = "";
-    export let initialColorId: string = DEFAULT_COLOR_ID;
-    export let initialEndDate: string = "";
+    let {
+        isOpen = false,
+        date = "",
+        initialTitle = "",
+        initialDescription = "",
+        initialColorId = "",
+        initialEndDate = "",
+    } = $props<{
+        isOpen?: boolean;
+        date?: string;
+        initialTitle?: string;
+        initialDescription?: string;
+        initialColorId?: string;
+        initialEndDate?: string;
+    }>();
 
     const dispatch = createEventDispatcher<{
         close: null;
@@ -26,84 +31,25 @@
         };
     }>();
 
-    let title: string = "";
-    let eventDate: string = "";
-    let startTime: string = "";
-    let endTime: string = "";
-    let description: string = "";
-    let selectedColorId: string = DEFAULT_COLOR_ID;
-    let isEdit: boolean = false;
-    let timeError: string = "";
+    const form = new EventForm();
 
-    $: {
-        if (startTime && endTime && startTime >= endTime) {
-            timeError = "End time must be after start time";
-        } else {
-            timeError = "";
-        }
-    }
-
-    $: if (isOpen) {
-        isEdit = !!(initialTitle || initialDescription || initialEndDate);
-        if (isEdit) {
-            // Edit mode initialization
-            title = initialTitle;
-            description = initialDescription;
-            selectedColorId = initialColorId;
-
-            const start: Date = new Date(date);
-            eventDate = format(start, "yyyy-MM-dd");
-            startTime = format(start, "HH:mm");
-
-            const end: Date = initialEndDate
-                ? new Date(initialEndDate)
-                : new Date(start.getTime() + 3600000);
-            endTime = format(end, "HH:mm");
-        } else if (date) {
-            // Create mode initialization
-            title = "";
-            description = "";
-            selectedColorId = DEFAULT_COLOR_ID;
-
-            let start: Date;
-            const hasTime = date.includes("T") && date.length > 10;
-
-            if (hasTime) {
-                start = new Date(date);
-            } else {
-                // date is "yyyy-MM-dd", parse as local time to avoid off-by-one errors
-                const parts = date.split("-").map(Number);
-                start = new Date(parts[0], parts[1] - 1, parts[2]);
-                const now: Date = new Date();
-                start.setHours(now.getHours(), 0, 0, 0);
-            }
-
-            const end: Date = new Date(start);
-            end.setHours(start.getHours() + 1);
-
-            eventDate = format(start, "yyyy-MM-dd");
-            startTime = format(start, "HH:mm");
-            endTime = format(end, "HH:mm");
-        }
-    }
+    $effect(() => {
+        form.init(isOpen, {
+            date,
+            initialTitle,
+            initialDescription,
+            initialColorId,
+            initialEndDate,
+        });
+    });
 
     function close(): void {
         dispatch("close");
     }
 
     function save(): void {
-        if (timeError) return;
-
-        const startISO = `${eventDate}T${startTime}`;
-        const endISO = `${eventDate}T${endTime}`;
-
-        dispatch("save", {
-            title,
-            startDate: startISO,
-            endDate: endISO,
-            description,
-            color: selectedColorId,
-        });
+        if (form.timeError) return;
+        dispatch("save", form.getPayload());
         close();
     }
 
@@ -125,25 +71,27 @@
         }
     }
 
-    let modalElement: HTMLElement;
+    let modalElement = $state<HTMLElement>();
 
-    $: if (isOpen && modalElement) {
-        // Focus the first input when modal opens
-        setTimeout(() => {
-            const firstInput = modalElement.querySelector(
-                "input",
-            ) as HTMLElement;
-            if (firstInput) firstInput.focus();
-        }, 50);
-    }
+    $effect(() => {
+        if (isOpen && modalElement) {
+            // Focus the first input when modal opens
+            setTimeout(() => {
+                const el = modalElement;
+                if (!el) return;
+                const firstInput = el.querySelector("input") as HTMLElement;
+                if (firstInput) firstInput.focus();
+            }, 50);
+        }
+    });
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 {#if isOpen}
     <div
         class="modal modal-open items-center justify-center bg-black/40 backdrop-blur-sm z-[100]"
-        on:mousedown={handleBackdropClick}
+        onmousedown={handleBackdropClick}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -158,11 +106,11 @@
                     id="modal-title"
                     class="text-xs font-bold text-base-content/40 tracking-widest uppercase"
                 >
-                    {isEdit ? "Update Event" : "Create New Event"}
+                    {form.isEdit ? "Update Event" : "Create New Event"}
                 </h2>
                 <button
                     class="btn btn-ghost btn-circle btn-sm text-base-content/40 hover:text-base-content"
-                    on:click={close}
+                    onclick={close}
                     aria-label="Close modal"
                 >
                     <svg
@@ -186,7 +134,7 @@
                 <div>
                     <input
                         type="text"
-                        bind:value={title}
+                        bind:value={form.title}
                         placeholder="Event Title"
                         class="w-full text-4xl font-bold bg-transparent border-none outline-none focus:ring-0 placeholder:text-base-content/20 text-base-content"
                     />
@@ -236,8 +184,8 @@
                             <input
                                 id="event-date"
                                 type="date"
-                                bind:value={eventDate}
-                                on:click={(e) => e.currentTarget.showPicker()}
+                                bind:value={form.eventDate}
+                                onclick={(e) => e.currentTarget.showPicker()}
                                 class="w-full pl-12 pr-4 py-3 bg-base-200/30 border border-base-300 rounded-xl focus:border-blue-500 focus:bg-base-100 transition-all outline-none font-medium text-base-content/80 text-sm appearance-none"
                             />
                         </div>
@@ -276,8 +224,8 @@
                                 <input
                                     id="start-time"
                                     type="time"
-                                    bind:value={startTime}
-                                    on:click={(e) =>
+                                    bind:value={form.startTime}
+                                    onclick={(e) =>
                                         e.currentTarget.showPicker()}
                                     class="w-full pl-12 pr-4 py-3 bg-base-200/30 border border-base-300 rounded-xl focus:border-blue-500 focus:bg-base-100 transition-all outline-none font-medium text-base-content/80 text-sm appearance-none"
                                 />
@@ -315,8 +263,8 @@
                                 <input
                                     id="end-time"
                                     type="time"
-                                    bind:value={endTime}
-                                    on:click={(e) =>
+                                    bind:value={form.endTime}
+                                    onclick={(e) =>
                                         e.currentTarget.showPicker()}
                                     class="w-full pl-12 pr-4 py-3 bg-base-200/30 border border-base-300 rounded-xl focus:border-blue-500 focus:bg-base-100 transition-all outline-none font-medium text-base-content/80 text-sm appearance-none"
                                 />
@@ -324,7 +272,7 @@
                         </div>
                     </div>
 
-                    {#if timeError}
+                    {#if form.timeError}
                         <div
                             class="px-1 text-xs font-bold text-error animate-pulse flex items-center gap-1.5"
                         >
@@ -350,7 +298,7 @@
                                     y2="16"
                                 /></svg
                             >
-                            {timeError}
+                            {form.timeError}
                         </div>
                     {/if}
                 </div>
@@ -363,7 +311,7 @@
                     >
                     <textarea
                         id="event-description"
-                        bind:value={description}
+                        bind:value={form.description}
                         placeholder="Add notes, location, or video call links..."
                         class="w-full p-4 bg-base-200/30 border border-base-300 rounded-xl focus:border-blue-500 focus:bg-base-100 transition-all outline-none min-h-[120px] resize-none text-base-content/80 placeholder:text-base-content/30"
                     ></textarea>
@@ -378,13 +326,14 @@
                         {#each EVENT_COLORS as color}
                             <button
                                 class="relative w-8 h-8 rounded-full border-2 transition-all hover:scale-110 active:scale-95"
-                                style="background-color: {color.hex}; border-color: {selectedColorId ===
+                                style="background-color: {color.hex}; border-color: {form.selectedColorId ===
                                 color.id
                                     ? '#3b82f6'
                                     : 'transparent'}"
-                                on:click={() => (selectedColorId = color.id)}
+                                onclick={() =>
+                                    (form.selectedColorId = color.id)}
                             >
-                                {#if selectedColorId === color.id}
+                                {#if form.selectedColorId === color.id}
                                     <div
                                         class="absolute inset-0 flex items-center justify-center text-white drop-shadow-sm"
                                     >
@@ -414,10 +363,10 @@
                 class="flex items-center justify-between gap-4 p-8 bg-base-200/20 border-t border-base-300"
             >
                 <div>
-                    {#if isEdit}
+                    {#if form.isEdit}
                         <button
                             class="btn btn-ghost text-error hover:bg-error/10 font-bold px-4"
-                            on:click={handleDelete}
+                            onclick={handleDelete}
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -446,19 +395,14 @@
                 <div class="flex items-center gap-3">
                     <button
                         class="btn btn-ghost font-bold text-base-content/60 hover:bg-base-300 px-6"
-                        on:click={close}>Cancel</button
+                        onclick={close}>Cancel</button
                     >
                     <button
                         class="btn bg-blue-600 hover:bg-blue-700 disabled:bg-base-300 disabled:text-base-content/30 text-white border-none font-bold px-8 shadow-lg shadow-blue-500/20"
-                        on:click={save}
-                        disabled={!!timeError ||
-                            !title.trim() ||
-                            !eventDate ||
-                            !startTime ||
-                            !endTime ||
-                            !selectedColorId}
+                        onclick={save}
+                        disabled={!form.isValid}
                     >
-                        {isEdit ? "Update Event" : "Save Event"}
+                        {form.isEdit ? "Update Event" : "Save Event"}
                     </button>
                 </div>
             </div>
