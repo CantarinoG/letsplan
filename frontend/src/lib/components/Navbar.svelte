@@ -4,6 +4,8 @@
     export let onNext: () => void = () => {};
     export let onPrev: () => void = () => {};
     export let onToday: () => void = () => {};
+
+    import ThemeToggle from "./ThemeToggle.svelte";
 </script>
 
 <nav class="navbar bg-base-100 border-b border-base-300 px-4 py-2">
@@ -111,5 +113,7 @@
         </div>
     </div>
 
-    <div class="navbar-end"></div>
+    <div class="navbar-end">
+        <ThemeToggle />
+    </div>
 </nav>

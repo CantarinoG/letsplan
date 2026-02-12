@@ -23,3 +23,26 @@ export const dismissToast = (id: number) => {
 };
 
 export const isLoading = writable(false);
+
+export type Theme = "light" | "dark";
+
+const getInitialTheme = (): Theme => {
+    if (typeof window === "undefined") return "light";
+    const stored = localStorage.getItem("theme") as Theme | null;
+    if (stored) return stored;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+};
+
+export const theme = writable<Theme>(getInitialTheme());
+
+if (typeof window !== "undefined") {
+    theme.subscribe((val) => {
+        localStorage.setItem("theme", val);
+    });
+}
+
+export const toggleTheme = () => {
+    theme.update((current) => (current === "light" ? "dark" : "light"));
+};

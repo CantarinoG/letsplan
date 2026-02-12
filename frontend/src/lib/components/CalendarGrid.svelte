@@ -334,10 +334,8 @@
                             role="button"
                             aria-label={`Day column for ${format(addDays(weekStart, i), "EEEE, MMMM do")}`}
                             tabindex="0"
-                            class="border-r border-base-300 last:border-r-0 relative cursor-pointer {i ===
-                            0
-                                ? 'bg-orange-50/10'
-                                : ''} {dragOverDayIndex === i
+                            class="border-r border-base-300 last:border-r-0 relative cursor-pointer {dragOverDayIndex ===
+                            i
                                 ? 'bg-orange-50/30'
                                 : ''}"
                             onclick={(e) => handleCellClick(i, e)}

@@ -2,9 +2,16 @@
 	import "./layout.css";
 	import favicon from "$lib/assets/favicon.svg";
 	import Toast from "$lib/components/Toast.svelte";
-	import { isLoading } from "$lib/stores";
+	import { isLoading, theme } from "$lib/stores";
+	import { onMount } from "svelte";
 
 	let { children } = $props();
+
+	$effect(() => {
+		if (typeof document !== "undefined") {
+			document.documentElement.setAttribute("data-theme", $theme);
+		}
+	});
 </script>
 
 <svelte:head>
