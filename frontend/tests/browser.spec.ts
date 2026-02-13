@@ -5,7 +5,7 @@ test.use({
         slowMo: 1000,
     },
 });
-/*
+
 test.describe('Event CRUD operations', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
@@ -112,7 +112,7 @@ test.describe('UI Navigation', () => {
         expect(restoredTheme).toBe(initialTheme);
     });
 });
-*/
+
 test.describe('UI Layout and Overlap', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
@@ -142,5 +142,18 @@ test.describe('UI Layout and Overlap', () => {
         const hasLeft50 = style1?.includes('left: 50%') || style2?.includes('left: 50%');
         expect(hasLeft0).toBeTruthy();
         expect(hasLeft50).toBeTruthy();
+    });
+});
+
+test.describe('Grid Interaction', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+    });
+    test('should open create modal with correct time when clicking on grid', async ({ page }) => {
+        const dayColumn = page.locator('[role="button"][aria-label^="Day column for"]').first();
+        await expect(dayColumn).toBeVisible();
+        await dayColumn.click({ position: { x: 20, y: 800 } });
+        await expect(page.getByText('Create Event', { exact: true }).first()).toBeVisible();
+        await expect(page.getByLabel('Start Time')).toHaveValue('10:00');
     });
 });
