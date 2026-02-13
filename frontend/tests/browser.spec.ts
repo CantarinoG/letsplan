@@ -157,3 +157,58 @@ test.describe('Grid Interaction', () => {
         await expect(page.getByLabel('Start Time')).toHaveValue('10:00');
     });
 });
+
+test.describe('Drag and Drop', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+    });
+    test('should drag and drop event within the same week', async ({ page }) => {
+        const eventTitle = `Drag Me Week ${Date.now()}`;
+        await page.getByRole('button', { name: 'Create Event' }).click();
+        await page.getByPlaceholder('Event Title').fill(eventTitle);
+        await page.getByLabel('Start Time').fill('02:00');
+        await page.getByLabel('End Time').fill('03:00');
+        await page.getByRole('button', { name: 'Save Event' }).click();
+        const eventCard = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle });
+        await expect(eventCard).toBeVisible();
+        const box = await eventCard.boundingBox();
+        if (!box) throw new Error('Event card not found');
+        const sourceX = box.x + box.width / 2;
+        const sourceY = box.y + box.height / 2;
+        const targetY = sourceY + 160;
+
+        await page.mouse.move(sourceX, sourceY);
+        await page.mouse.down();
+        await page.mouse.move(sourceX, targetY, { steps: 10 });
+        await page.mouse.up();
+
+        await expect(page.getByText('04:30 - 05:30')).toBeVisible();
+    });
+
+    test('should drag and drop event across weeks', async ({ page }) => {
+        const eventTitle = `Drag Me Cross Week ${Date.now()}`;
+        await page.getByRole('button', { name: 'Create Event' }).click();
+        await page.getByPlaceholder('Event Title').fill(eventTitle);
+        await page.getByLabel('Start Time').fill('02:00');
+        await page.getByLabel('End Time').fill('03:00');
+        await page.getByRole('button', { name: 'Save Event' }).click();
+        const eventCard = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle });
+        await expect(eventCard).toBeVisible();
+        const box = await eventCard.boundingBox();
+        if (!box) throw new Error('Event card not found');
+        const dayColumns = page.locator('[role="button"][aria-label^="Day column for"]');
+        const lastColumn = dayColumns.nth(6);
+        const lastColumnBox = await lastColumn.boundingBox();
+        if (!lastColumnBox) throw new Error('Last column not found');
+        const targetX = lastColumnBox.x + lastColumnBox.width / 2;
+        const targetY = box.y + box.height / 2;
+        const dateRange = page.locator('.navbar-center span');
+        const initialRange = await dateRange.textContent();
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(targetX, targetY, { steps: 10 });
+        await expect(dateRange).not.toHaveText(initialRange!, { timeout: 10000 });
+        await page.mouse.up();
+        await expect(page.getByText(eventTitle)).toBeVisible();
+    });
+});
