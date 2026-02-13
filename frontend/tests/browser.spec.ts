@@ -6,55 +6,6 @@ test.use({
     },
 });
 
-test.describe('Event CRUD operations', () => {
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-    });
-
-    test('should create a new event', async ({ page }) => {
-        await page.getByRole('button', { name: 'Create Event' }).click();
-        const eventTitle = `Test Event ${Date.now()}`;
-        await page.getByPlaceholder('Event Title').fill(eventTitle);
-        await page.getByLabel('Start Time').fill('02:00');
-        await page.getByLabel('End Time').fill('03:00');
-        await page.getByPlaceholder('Add notes, location, or video call links...').fill('Test Description');
-        await page.getByRole('button', { name: 'Save Event' }).click();
-        await expect(page.getByText(eventTitle)).toBeVisible();
-        await expect(page.getByText('02:00 - 03:00')).toBeVisible();
-    });
-
-    test('should update an existing event', async ({ page }) => {
-        const initialTitle = `Update Me ${Date.now()}`;
-        await page.getByRole('button', { name: 'Create Event' }).click();
-        await page.getByPlaceholder('Event Title').fill(initialTitle);
-        await page.getByLabel('Start Time').fill('02:00');
-        await page.getByLabel('End Time').fill('03:00');
-        await page.getByRole('button', { name: 'Save Event' }).click();
-        await page.getByText(initialTitle).click();
-        const updatedTitle = `Updated Title ${Date.now()}`;
-        await page.getByPlaceholder('Event Title').clear();
-        await page.getByPlaceholder('Event Title').fill(updatedTitle);
-        await page.getByRole('button', { name: 'Update Event' }).click();
-        await expect(page.getByText(updatedTitle)).toBeVisible();
-        await expect(page.getByText(initialTitle)).not.toBeVisible();
-    });
-
-    test('should delete an event', async ({ page }) => {
-        const deleteTitle = `Delete Me ${Date.now()}`;
-        await page.getByRole('button', { name: 'Create Event' }).click();
-        await page.getByPlaceholder('Event Title').fill(deleteTitle);
-        await page.getByLabel('Start Time').fill('02:00');
-        await page.getByLabel('End Time').fill('03:00');
-        await page.getByRole('button', { name: 'Save Event' }).click();
-        await page.getByText(deleteTitle).click();
-        const deleteButton = page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true });
-        await deleteButton.click();
-        const confirmDeleteButton = page.getByRole('button', { name: 'Delete', exact: true });
-        await confirmDeleteButton.click();
-        await expect(page.getByText(deleteTitle)).not.toBeVisible();
-    });
-});
-
 test.describe('UI Navigation', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
@@ -113,35 +64,97 @@ test.describe('UI Navigation', () => {
     });
 });
 
-test.describe('UI Layout and Overlap', () => {
+test.describe('Keyboard Shortcuts', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
     });
-    test('should display overlapping events side-by-side', async ({ page }) => {
-        const eventTitle1 = `Overlap 1 ${Date.now()}`;
-        const eventTitle2 = `Overlap 2 ${Date.now()}`;
+
+    test('should open create modal with "c" key', async ({ page }) => {
+        await expect(page.getByRole('dialog')).not.toBeVisible();
+        await page.keyboard.press('c');
+        await expect(page.getByText('Create Event', { exact: true }).first()).toBeVisible();
+    });
+
+    test('should navigate with arrow keys', async ({ page }) => {
+        const dateRange = page.locator('.navbar-center span');
+        const initialRange = await dateRange.textContent();
+        await page.keyboard.press('ArrowRight');
+        await expect(dateRange).not.toHaveText(initialRange!);
+        const nextWeekRange = await dateRange.textContent();
+        await page.keyboard.press('ArrowLeft');
+        await expect(dateRange).toHaveText(initialRange!);
+    });
+
+    test('should return to today with "t" key', async ({ page }) => {
+        const dateRange = page.locator('.navbar-center span');
+        const initialRange = await dateRange.textContent();
+        await page.keyboard.press('ArrowRight');
+        await expect(dateRange).not.toHaveText(initialRange!);
+        await page.keyboard.press('t');
+        await expect(dateRange).toHaveText(initialRange!);
+    });
+});
+
+test.describe('Event CRUD operations', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+    });
+
+    test('should create a new event', async ({ page }) => {
         await page.getByRole('button', { name: 'Create Event' }).click();
-        await page.getByPlaceholder('Event Title').fill(eventTitle1);
-        await page.getByLabel('Start Time').fill('04:00');
-        await page.getByLabel('End Time').fill('05:00');
+        const eventTitle = `Test Event ${Date.now()}`;
+        await page.getByPlaceholder('Event Title').fill(eventTitle);
+        await page.getByLabel('Start Time').fill('01:00');
+        await page.getByLabel('End Time').fill('01:30');
+        await page.getByPlaceholder('Add notes, location, or video call links...').fill('Test Description');
+        const colorButtons = page.locator('.modal-box button.rounded-full');
+        const colorCount = await colorButtons.count();
+        const randomIndex = Math.floor(Math.random() * colorCount);
+        await colorButtons.nth(randomIndex).click();
         await page.getByRole('button', { name: 'Save Event' }).click();
+        await expect(page.getByText(eventTitle)).toBeVisible();
+        await expect(page.getByText('01:00 - 01:30')).toBeVisible();
+    });
+
+    test('should update an existing event', async ({ page }) => {
+        const initialTitle = `Update Me ${Date.now()}`;
         await page.getByRole('button', { name: 'Create Event' }).click();
-        await page.getByPlaceholder('Event Title').fill(eventTitle2);
-        await page.getByLabel('Start Time').fill('04:00');
-        await page.getByLabel('End Time').fill('05:00');
+        await page.getByPlaceholder('Event Title').fill(initialTitle);
+        await page.getByLabel('Start Time').fill('01:30');
+        await page.getByLabel('End Time').fill('02:00');
+        const colorButtons = page.locator('.modal-box button.rounded-full');
+        await expect(colorButtons.first()).toBeVisible();
+        const colorCount = await colorButtons.count();
+        const randomIndex = Math.floor(Math.random() * colorCount);
+        await colorButtons.nth(randomIndex).click();
         await page.getByRole('button', { name: 'Save Event' }).click();
-        const card1 = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle1 });
-        const card2 = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle2 });
-        await expect(card1).toBeVisible();
-        await expect(card2).toBeVisible();
-        const style1 = await card1.getAttribute('style');
-        const style2 = await card2.getAttribute('style');
-        expect(style1).toContain('width: 50%');
-        expect(style2).toContain('width: 50%');
-        const hasLeft0 = style1?.includes('left: 0%') || style2?.includes('left: 0%');
-        const hasLeft50 = style1?.includes('left: 50%') || style2?.includes('left: 50%');
-        expect(hasLeft0).toBeTruthy();
-        expect(hasLeft50).toBeTruthy();
+        await page.getByText(initialTitle).click();
+        const updatedTitle = `Updated Title ${Date.now()}`;
+        await page.getByPlaceholder('Event Title').clear();
+        await page.getByPlaceholder('Event Title').fill(updatedTitle);
+        await page.getByRole('button', { name: 'Update Event' }).click();
+        await expect(page.getByText(updatedTitle)).toBeVisible();
+        await expect(page.getByText(initialTitle)).not.toBeVisible();
+    });
+
+    test('should delete an event', async ({ page }) => {
+        const deleteTitle = `Delete Me ${Date.now()}`;
+        await page.getByRole('button', { name: 'Create Event' }).click();
+        await page.getByPlaceholder('Event Title').fill(deleteTitle);
+        await page.getByLabel('Start Time').fill('01:30');
+        await page.getByLabel('End Time').fill('02:00');
+        const colorButtons = page.locator('.modal-box button.rounded-full');
+        await expect(colorButtons.first()).toBeVisible();
+        const colorCount = await colorButtons.count();
+        const randomIndex = Math.floor(Math.random() * colorCount);
+        await colorButtons.nth(randomIndex).click();
+        await page.getByRole('button', { name: 'Save Event' }).click();
+        await page.getByText(deleteTitle).click();
+        const deleteButton = page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true });
+        await deleteButton.click();
+        const confirmDeleteButton = page.getByRole('button', { name: 'Delete', exact: true });
+        await confirmDeleteButton.click();
+        await expect(page.getByText(deleteTitle)).not.toBeVisible();
     });
 });
 
@@ -149,6 +162,7 @@ test.describe('Grid Interaction', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
     });
+
     test('should open create modal with correct time when clicking on grid', async ({ page }) => {
         const dayColumn = page.locator('[role="button"][aria-label^="Day column for"]').first();
         await expect(dayColumn).toBeVisible();
@@ -162,12 +176,18 @@ test.describe('Drag and Drop', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
     });
+
     test('should drag and drop event within the same week', async ({ page }) => {
         const eventTitle = `Drag Me Week ${Date.now()}`;
         await page.getByRole('button', { name: 'Create Event' }).click();
         await page.getByPlaceholder('Event Title').fill(eventTitle);
         await page.getByLabel('Start Time').fill('02:00');
         await page.getByLabel('End Time').fill('03:00');
+        const colorButtons = page.locator('.modal-box button.rounded-full');
+        await expect(colorButtons.first()).toBeVisible();
+        const colorCount = await colorButtons.count();
+        const randomIndex = Math.floor(Math.random() * colorCount);
+        await colorButtons.nth(randomIndex).click();
         await page.getByRole('button', { name: 'Save Event' }).click();
         const eventCard = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle });
         await expect(eventCard).toBeVisible();
@@ -191,6 +211,11 @@ test.describe('Drag and Drop', () => {
         await page.getByPlaceholder('Event Title').fill(eventTitle);
         await page.getByLabel('Start Time').fill('02:00');
         await page.getByLabel('End Time').fill('03:00');
+        const colorButtons = page.locator('.modal-box button.rounded-full');
+        await expect(colorButtons.first()).toBeVisible();
+        const colorCount = await colorButtons.count();
+        const randomIndex = Math.floor(Math.random() * colorCount);
+        await colorButtons.nth(randomIndex).click();
         await page.getByRole('button', { name: 'Save Event' }).click();
         const eventCard = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle });
         await expect(eventCard).toBeVisible();
@@ -210,5 +235,46 @@ test.describe('Drag and Drop', () => {
         await expect(dateRange).not.toHaveText(initialRange!, { timeout: 10000 });
         await page.mouse.up();
         await expect(page.getByText(eventTitle)).toBeVisible();
+    });
+});
+
+test.describe('UI Layout and Overlap', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+    });
+
+    test('should display overlapping events side-by-side', async ({ page }) => {
+        const eventTitle1 = `Overlap 1 ${Date.now()}`;
+        const eventTitle2 = `Overlap 2 ${Date.now()}`;
+        await page.getByRole('button', { name: 'Create Event' }).click();
+        await page.getByPlaceholder('Event Title').fill(eventTitle1);
+        await page.getByLabel('Start Time').fill('03:00');
+        await page.getByLabel('End Time').fill('04:00');
+        let colorButtons = page.locator('.modal-box button.rounded-full');
+        let colorCount = await colorButtons.count();
+        let randomIndex = Math.floor(Math.random() * colorCount);
+        await colorButtons.nth(randomIndex).click();
+        await page.getByRole('button', { name: 'Save Event' }).click();
+        await page.getByRole('button', { name: 'Create Event' }).click();
+        await page.getByPlaceholder('Event Title').fill(eventTitle2);
+        await page.getByLabel('Start Time').fill('03:00');
+        await page.getByLabel('End Time').fill('04:00');
+        colorButtons = page.locator('.modal-box button.rounded-full');
+        colorCount = await colorButtons.count();
+        randomIndex = Math.floor(Math.random() * colorCount);
+        await colorButtons.nth(randomIndex).click();
+        await page.getByRole('button', { name: 'Save Event' }).click();
+        const card1 = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle1 });
+        const card2 = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle2 });
+        await expect(card1).toBeVisible();
+        await expect(card2).toBeVisible();
+        const style1 = await card1.getAttribute('style');
+        const style2 = await card2.getAttribute('style');
+        expect(style1).toContain('width: 50%');
+        expect(style2).toContain('width: 50%');
+        const hasLeft0 = style1?.includes('left: 0%') || style2?.includes('left: 0%');
+        const hasLeft50 = style1?.includes('left: 50%') || style2?.includes('left: 50%');
+        expect(hasLeft0).toBeTruthy();
+        expect(hasLeft50).toBeTruthy();
     });
 });
