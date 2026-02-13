@@ -54,7 +54,7 @@ test.describe('Event CRUD operations', () => {
         await expect(page.getByText(deleteTitle)).not.toBeVisible();
     });
 });
-*/
+
 test.describe('UI Navigation', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
@@ -110,5 +110,37 @@ test.describe('UI Navigation', () => {
         await page.getByRole('button', { name: 'Toggle Theme' }).click();
         const restoredTheme = await html.getAttribute('data-theme');
         expect(restoredTheme).toBe(initialTheme);
+    });
+});
+*/
+test.describe('UI Layout and Overlap', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+    });
+    test('should display overlapping events side-by-side', async ({ page }) => {
+        const eventTitle1 = `Overlap 1 ${Date.now()}`;
+        const eventTitle2 = `Overlap 2 ${Date.now()}`;
+        await page.getByRole('button', { name: 'Create Event' }).click();
+        await page.getByPlaceholder('Event Title').fill(eventTitle1);
+        await page.getByLabel('Start Time').fill('04:00');
+        await page.getByLabel('End Time').fill('05:00');
+        await page.getByRole('button', { name: 'Save Event' }).click();
+        await page.getByRole('button', { name: 'Create Event' }).click();
+        await page.getByPlaceholder('Event Title').fill(eventTitle2);
+        await page.getByLabel('Start Time').fill('04:00');
+        await page.getByLabel('End Time').fill('05:00');
+        await page.getByRole('button', { name: 'Save Event' }).click();
+        const card1 = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle1 });
+        const card2 = page.locator('[role="button"][draggable="true"]', { hasText: eventTitle2 });
+        await expect(card1).toBeVisible();
+        await expect(card2).toBeVisible();
+        const style1 = await card1.getAttribute('style');
+        const style2 = await card2.getAttribute('style');
+        expect(style1).toContain('width: 50%');
+        expect(style2).toContain('width: 50%');
+        const hasLeft0 = style1?.includes('left: 0%') || style2?.includes('left: 0%');
+        const hasLeft50 = style1?.includes('left: 50%') || style2?.includes('left: 50%');
+        expect(hasLeft0).toBeTruthy();
+        expect(hasLeft50).toBeTruthy();
     });
 });
