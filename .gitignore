@@ -16,3 +16,5 @@ frontend/.env.*
 frontend/vite.config.js.timestamp-*
 frontend/vite.config.ts.timestamp-*
 frontend/.vscode
+frontend/test-results/
+frontend/playwright-report/
